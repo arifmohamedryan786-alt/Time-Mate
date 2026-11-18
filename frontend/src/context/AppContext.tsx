@@ -1,3 +1,10 @@
+/**
+ * TIME-MATE - Core Application State & Data Provider
+ * 
+ * Central state management coordinating Tasks, Daily Schedules, Focus Sessions,
+ * Daily Distraction Reflections, and Routine Settings across all views.
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Task, Schedule, FocusSession, DailyReflection, UserSettings } from '../types';
 import { api } from '../services/api';
@@ -47,6 +54,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  /**
+   * Refreshes all core datasets in parallel from the SQLite backend.
+   */
   const refreshData = useCallback(async () => {
     if (!user) {
       setTasks([]);
@@ -73,7 +83,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setReflections(reflectionsRes.reflections || []);
       setSettings(settingsRes.settings || null);
     } catch (err) {
-      console.error('Failed to load application data:', err);
+      console.error('[AppContext] Failed to load application data:', err);
     } finally {
       setLoading(false);
     }
@@ -83,7 +93,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshData();
   }, [refreshData]);
 
-  // Task Handlers
+  // ==========================================
+  // TASK HANDLERS
+  // ==========================================
+
   const addTask = async (data: Partial<Task>): Promise<Task> => {
     const res = await api.tasks.create(data);
     setTasks((prev) => [res.task, ...prev]);
@@ -103,20 +116,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const toggleTaskComplete = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
-    const updatedStatus = !task.completed;
-    await updateTask(id, { completed: updatedStatus });
+    const newStatus = !task.completed;
+    // Optimistic local state update
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: newStatus } : t)));
+    try {
+      await api.tasks.update(id, { completed: newStatus });
+    } catch (err) {
+      // Rollback on failure
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !newStatus } : t)));
+      throw err;
+    }
   };
 
   const rescheduleTask = async (id: string, newDate: string, newTime?: string) => {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-    await updateTask(id, {
-      due_date: newDate,
-      due_time: newTime !== undefined ? newTime : task.due_time,
-    });
+    const payload: Partial<Task> = { due_date: newDate };
+    if (newTime) payload.due_time = newTime;
+    const res = await api.tasks.update(id, payload);
+    setTasks((prev) => prev.map((t) => (t.id === id ? res.task : t)));
   };
 
-  // Schedule Handlers
+  // ==========================================
+  // SCHEDULE HANDLERS
+  // ==========================================
+
   const addSchedule = async (data: Partial<Schedule>): Promise<Schedule> => {
     const res = await api.schedules.create(data);
     setSchedules((prev) => [...prev, res.schedule].sort((a, b) => a.start_time.localeCompare(b.start_time)));
@@ -125,7 +147,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateSchedule = async (id: string, data: Partial<Schedule>) => {
     const res = await api.schedules.update(id, data);
-    setSchedules((prev) => prev.map((s) => (s.id === id ? res.schedule : s)).sort((a, b) => a.start_time.localeCompare(b.start_time)));
+    setSchedules((prev) =>
+      prev.map((s) => (s.id === id ? res.schedule : s)).sort((a, b) => a.start_time.localeCompare(b.start_time))
+    );
   };
 
   const deleteSchedule = async (id: string) => {
@@ -136,35 +160,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const toggleScheduleComplete = async (id: string) => {
     const item = schedules.find((s) => s.id === id);
     if (!item) return;
-    await updateSchedule(id, { completed: !item.completed });
+    const newStatus = !item.completed;
+    setSchedules((prev) => prev.map((s) => (s.id === id ? { ...s, completed: newStatus } : s)));
+    try {
+      await api.schedules.update(id, { completed: newStatus });
+    } catch (err) {
+      setSchedules((prev) => prev.map((s) => (s.id === id ? { ...s, completed: !newStatus } : s)));
+      throw err;
+    }
   };
 
-  // Focus Session Handlers
+  // ==========================================
+  // FOCUS SESSION HANDLERS
+  // ==========================================
+
   const addFocusSession = async (taskId: string | null, minutes: number) => {
     const res = await api.focus.create({ task_id: taskId, duration_minutes: minutes });
     setFocusSessions((prev) => [res.session, ...prev]);
   };
 
-  // Reflection Handlers
+  // ==========================================
+  // REFLECTION HANDLERS
+  // ==========================================
+
   const addReflection = async (data: Partial<DailyReflection>) => {
     const res = await api.reflections.create(data);
     setReflections((prev) => {
       const idx = prev.findIndex((r) => r.id === res.reflection.id || r.date === res.reflection.date);
       if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = res.reflection;
-        return copy;
+        const next = [...prev];
+        next[idx] = res.reflection;
+        return next;
       }
       return [res.reflection, ...prev];
     });
   };
 
-  // Settings Handler
+  // ==========================================
+  // SETTINGS HANDLERS
+  // ==========================================
+
   const updateSettings = async (data: Partial<UserSettings> & { name?: string }) => {
     const res = await api.settings.update(data);
     setSettings(res.settings);
-    if (data.name) {
-      updateUserLocal(data.name);
+    if (res.user && res.user.name) {
+      updateUserLocal(res.user.name);
     }
   };
 

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "../backend/node_modules/.bin/tsx --test src/tests/**/*.test.ts"
   },
   "dependencies": {
     "clsx": "^2.1.0",

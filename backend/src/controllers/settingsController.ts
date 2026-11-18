@@ -1,15 +1,32 @@
+/**
+ * TIME-MATE - Settings Controller
+ * 
+ * Manages student user preferences including profile name updates,
+ * default focus duration presets, morning wake-up hours, and notification toggles.
+ */
+
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import { getOne, run } from '../db/database.js';
 
+/**
+ * Retrieve personalized settings for the authenticated student.
+ * Auto-creates default preferences if no settings record exists.
+ * 
+ * Route: GET /api/settings
+ * Header: Authorization: Bearer <token>
+ */
 export const getSettings = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Authentication required.' });
+    }
 
     let settings = await getOne('SELECT * FROM user_settings WHERE user_id = ?', [userId]);
 
     if (!settings) {
-      // Create defaults if not found
+      // Lazy initialization of student routine presets
       const setId = 'set_' + userId;
       await run(
         'INSERT INTO user_settings (id, user_id, wake_up_time, study_start_time, default_focus_duration) VALUES (?, ?, ?, ?, ?)',
@@ -19,6 +36,7 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
     }
 
     return res.json({
+      success: true,
       settings: {
         ...settings,
         task_reminders: Boolean(settings.task_reminders),
@@ -27,18 +45,41 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('getSettings error:', error);
-    return res.status(500).json({ error: 'Failed to retrieve settings.' });
+    console.error('[getSettings] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to retrieve settings.' });
   }
 };
 
+/**
+ * Update student settings and profile metadata.
+ * 
+ * Route: PUT /api/settings
+ * Header: Authorization: Bearer <token>
+ * Body: { name?, wake_up_time?, study_start_time?, default_focus_duration?, task_reminders?, schedule_reminders?, focus_reminders? }
+ */
 export const updateSettings = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
-    const { name, wake_up_time, study_start_time, default_focus_duration, task_reminders, schedule_reminders, focus_reminders } = req.body;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Authentication required.' });
+    }
 
-    if (name) {
-      await run('UPDATE users SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [name.trim(), userId]);
+    const {
+      name,
+      wake_up_time,
+      study_start_time,
+      default_focus_duration,
+      task_reminders,
+      schedule_reminders,
+      focus_reminders
+    } = req.body;
+
+    // Optional student name update
+    if (name && name.trim()) {
+      await run(
+        'UPDATE users SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [name.trim(), userId]
+      );
     }
 
     const existingSettings = await getOne('SELECT * FROM user_settings WHERE user_id = ?', [userId]);
@@ -66,6 +107,7 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
     const updatedUser = await getOne('SELECT id, name, email FROM users WHERE id = ?', [userId]);
 
     return res.json({
+      success: true,
       message: 'Settings updated successfully.',
       user: updatedUser,
       settings: {
@@ -76,7 +118,7 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('updateSettings error:', error);
-    return res.status(500).json({ error: 'Failed to update settings.' });
+    console.error('[updateSettings] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update settings.' });
   }
 };

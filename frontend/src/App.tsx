@@ -1,3 +1,11 @@
+/**
+ * TIME-MATE - Main Application Shell & Root Layout
+ * 
+ * Orchestrates global context providers, top navigation, sidebar,
+ * modal dialogues, authentication gating, view routing, and dual-layer
+ * React Error Boundaries for error containment.
+ */
+
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -8,6 +16,7 @@ import { TaskModal } from './components/TaskModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { RescheduleModal } from './components/RescheduleModal';
 import { ReflectionModal } from './components/ReflectionModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { LandingPage } from './pages/LandingPage';
 import { SignInPage } from './pages/SignInPage';
@@ -23,13 +32,16 @@ import { Task, Schedule } from './types';
 import { AiPlannerPage } from './pages/AiPlannerPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 
+/**
+ * Inner Application Component containing routing logic and modal states.
+ */
 const MainAppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { addTask, updateTask, addSchedule, updateSchedule, rescheduleTask, addReflection } = useApp();
 
   const [currentTab, setCurrentTab] = useState<string>('landing');
 
-  // Modals state
+  // Modal visibility and active item states
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -41,7 +53,7 @@ const MainAppContent: React.FC = () => {
 
   const [reflectionModalOpen, setReflectionModalOpen] = useState(false);
 
-  // Automatic redirect logic for protected pages
+  // Automatic redirect logic for protected vs public routes
   React.useEffect(() => {
     if (!authLoading) {
       if (user && (currentTab === 'landing' || currentTab === 'signin' || currentTab === 'signup')) {
@@ -105,7 +117,7 @@ const MainAppContent: React.FC = () => {
     await rescheduleTask(taskId, newDate, newTime);
   };
 
-  // Render Page Component
+  // View dispatcher matching active navigation tab
   const renderCurrentPage = () => {
     switch (currentTab) {
       case 'landing':
@@ -153,6 +165,7 @@ const MainAppContent: React.FC = () => {
     }
   };
 
+  // Initial authentication hydration loader
   if (authLoading) {
     return (
       <div className="min-h-screen bg-surface-bg flex items-center justify-center">
@@ -176,18 +189,25 @@ const MainAppContent: React.FC = () => {
 
       {/* Main Container Layout */}
       {isPublicPage ? (
-        <main className="flex-1">{renderCurrentPage()}</main>
+        <main className="flex-1">
+          <ErrorBoundary
+            fallbackTitle="Unable to load page"
+            fallbackMessage="An error occurred while displaying this page. Please refresh or try again."
+          >
+            {renderCurrentPage()}
+          </ErrorBoundary>
+        </main>
       ) : (
         <div className="flex-1 flex max-w-7xl w-full mx-auto pb-16 lg:pb-0">
           
-          {/* Left Sidebar */}
+          {/* Left Navigation Sidebar */}
           <Sidebar
             currentTab={currentTab}
             onNavigate={handleNavigate}
             onOpenReflection={() => setReflectionModalOpen(true)}
           />
 
-          {/* Main Content Area */}
+          {/* Main Content Area Protected by View Error Boundary */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-y-auto">
             {/* Header Greeting Banner (Dashboard Only) */}
             {currentTab === 'dashboard' && (
@@ -198,12 +218,18 @@ const MainAppContent: React.FC = () => {
               />
             )}
 
-            {renderCurrentPage()}
+            <ErrorBoundary
+              fallbackTitle="Workspace View Error"
+              fallbackMessage="The current workspace module encountered an error. You can return to your dashboard or reload the view below."
+              onReset={() => handleNavigate('dashboard')}
+            >
+              {renderCurrentPage()}
+            </ErrorBoundary>
           </main>
         </div>
       )}
 
-      {/* Global Modals */}
+      {/* Global Interactive Modals */}
       <TaskModal
         isOpen={taskModalOpen}
         onClose={() => setTaskModalOpen(false)}
@@ -235,13 +261,23 @@ const MainAppContent: React.FC = () => {
   );
 };
 
+/**
+ * Top-Level Application Component
+ * Wraps entire tree in Global Error Boundary and Context Providers.
+ */
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <MainAppContent />
-      </AppProvider>
-    </AuthProvider>
+    <ErrorBoundary
+      fallbackTitle="Application Initialisation Error"
+      fallbackMessage="Time-Mate encountered an error while booting the client application. Please refresh your browser."
+    >
+      <AuthProvider>
+        <AppProvider>
+          <MainAppContent />
+        </AppProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
+
 export default App;

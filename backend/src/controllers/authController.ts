@@ -1,90 +1,164 @@
+/**
+ * TIME-MATE - Authentication Controller
+ * 
+ * Handles student registration, credential validation, JWT token creation,
+ * authenticated profile retrieval, and password modifications.
+ */
+
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { randomUUID } from 'crypto';
 import { getOne, run } from '../db/database.js';
 import { JWT_SECRET, AuthRequest } from '../middleware/auth.js';
 
+/**
+ * Register a new student account.
+ * 
+ * Route: POST /api/auth/signup
+ * Body: { name, email, password, confirmPassword }
+ * 
+ * Validations:
+ * - Name, email, and password must not be empty.
+ * - Password and confirmPassword must match identically.
+ * - Password must be at least 6 characters long.
+ * - Email must be unique (case-insensitive check).
+ * 
+ * Returns: 201 Created with JWT token and user profile on success.
+ */
 export const signup = async (req: Request, res: Response) => {
   try {
     const { name, email, password, confirmPassword } = req.body;
 
+    // Field presence validation
     if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Full name, email, and password are required.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Full name, email, and password are required fields.'
+      });
     }
 
+    // Password confirmation match
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: 'Passwords do not match.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Passwords do not match. Please verify both password entries.'
+      });
     }
 
+    // Minimum password security criteria
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long.'
+      });
     }
 
-    const existingUser = await getOne('SELECT id FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Prevent duplicate email registrations
+    const existingUser = await getOne('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
     if (existingUser) {
-      return res.status(400).json({ error: 'An account with this email already exists.' });
+      return res.status(400).json({
+        success: false,
+        error: 'An account with this email address already exists. Please sign in instead.'
+      });
     }
 
+    // Generate unique user identifier & securely hash password with bcrypt (10 rounds)
     const userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Save user
-    await run('INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)', [
-      userId,
-      name.trim(),
-      email.toLowerCase().trim(),
-      passwordHash,
-    ]);
+    // Persist new user entity
+    await run(
+      'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
+      [userId, name.trim(), normalizedEmail, passwordHash]
+    );
 
-    // Create default settings
+    // Seed default hostel routine settings for new student
     await run(
       'INSERT INTO user_settings (id, user_id, wake_up_time, study_start_time, default_focus_duration) VALUES (?, ?, ?, ?, ?)',
       ['set_' + userId, userId, '07:00', '09:00', 25]
     );
 
-    const token = jwt.sign({ userId, email: email.toLowerCase().trim() }, JWT_SECRET, { expiresIn: '7d' });
+    // Issue signed JWT token valid for 7 days
+    const token = jwt.sign(
+      { userId, email: normalizedEmail },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     return res.status(201).json({
+      success: true,
       message: 'Account created successfully.',
       token,
       user: {
         id: userId,
         name: name.trim(),
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
       },
     });
   } catch (error: any) {
-    console.error('Signup error:', error);
-    return res.status(500).json({ error: 'Internal server error during registration.' });
+    console.error('[signup] Internal Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error during student registration.'
+    });
   }
 };
 
+/**
+ * Authenticate student credentials and return a signed JWT token.
+ * 
+ * Route: POST /api/auth/login
+ * Body: { email, password }
+ * 
+ * Returns: 200 OK with JWT token and student record on success.
+ * Returns: 401 Unauthorized for mismatched credentials.
+ */
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Email address and password are required.'
+      });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Lookup user by unique email address
     const user = await getOne<{ id: string; name: string; email: string; password_hash: string }>(
       'SELECT id, name, email, password_hash FROM users WHERE email = ?',
-      [email.toLowerCase().trim()]
+      [normalizedEmail]
     );
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email address or password.'
+      });
     }
 
+    // Verify bcrypt password hash match
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email address or password.'
+      });
     }
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    // Generate authenticated session token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     return res.json({
+      success: true,
       message: 'Signed in successfully.',
       token,
       user: {
@@ -94,16 +168,28 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Internal server error during authentication.' });
+    console.error('[login] Internal Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error during authentication.'
+    });
   }
 };
 
+/**
+ * Fetch profile data for the currently authenticated student session.
+ * 
+ * Route: GET /api/auth/me
+ * Header: Authorization: Bearer <token>
+ */
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated.' });
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required. Token missing or invalid.'
+      });
     }
 
     const user = await getOne<{ id: string; name: string; email: string; created_at: string }>(
@@ -112,39 +198,75 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User profile not found.' });
+      return res.status(404).json({
+        success: false,
+        error: 'Student profile record not found.'
+      });
     }
 
-    return res.json({ user });
+    return res.json({
+      success: true,
+      user
+    });
   } catch (error: any) {
-    console.error('getMe error:', error);
-    return res.status(500).json({ error: 'Internal server error fetching user.' });
+    console.error('[getMe] Internal Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error while retrieving student profile.'
+    });
   }
 };
 
+/**
+ * Sign out user session (client-side token removal acknowledgment).
+ * 
+ * Route: POST /api/auth/logout
+ */
 export const logout = async (req: Request, res: Response) => {
-  return res.json({ message: 'Signed out successfully.' });
+  return res.json({
+    success: true,
+    message: 'Signed out successfully.'
+  });
 };
 
+/**
+ * Update authenticated student password.
+ * 
+ * Route: POST /api/auth/change-password
+ * Header: Authorization: Bearer <token>
+ * Body: { currentPassword, newPassword, confirmNewPassword }
+ */
 export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated.' });
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required.'
+      });
     }
 
     const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      return res.status(400).json({ error: 'Current password, new password, and confirmation are required.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Current password, new password, and confirmation are required.'
+      });
     }
 
     if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({ error: 'New passwords do not match.' });
+      return res.status(400).json({
+        success: false,
+        error: 'New passwords do not match.'
+      });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long.'
+      });
     }
 
     const user = await getOne<{ id: string; password_hash: string }>(
@@ -153,23 +275,35 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User profile not found.' });
+      return res.status(404).json({
+        success: false,
+        error: 'Student profile not found.'
+      });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Current password is incorrect.' });
+      return res.status(400).json({
+        success: false,
+        error: 'Current password is incorrect.'
+      });
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
-    await run('UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [
-      newPasswordHash,
-      userId,
-    ]);
+    await run(
+      'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [newPasswordHash, userId]
+    );
 
-    return res.json({ message: 'Password changed successfully.' });
+    return res.json({
+      success: true,
+      message: 'Password changed successfully.'
+    });
   } catch (error: any) {
-    console.error('changePassword error:', error);
-    return res.status(500).json({ error: 'Internal server error while changing password.' });
+    console.error('[changePassword] Internal Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error while changing password.'
+    });
   }
 };

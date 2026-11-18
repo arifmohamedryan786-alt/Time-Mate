@@ -1,11 +1,20 @@
+/**
+ * TIME-MATE - Database Access Layer
+ * 
+ * Provides an asynchronous Promise-based wrapper around the SQLite3 library.
+ * Manages schema initialization, foreign key pragma enforcement, transactions,
+ * query execution, and initial demo seed population.
+ */
+
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
 
+// Resolve database storage path under the /database directory
 const dbPath = path.resolve(__dirname, '../../../database/better_tomorrow.db');
 
-// Ensure database directory exists
+// Ensure database directory exists before connecting
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
@@ -13,17 +22,28 @@ if (!fs.existsSync(dbDir)) {
 
 sqlite3.verbose();
 
+/**
+ * Shared SQLite Database Connection Instance
+ */
 export const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error('Error connecting to SQLite database:', err);
+    console.error('❌ Error connecting to SQLite database:', err);
   } else {
-    console.log(`Connected to SQLite database at: ${dbPath}`);
+    console.log(`📦 Connected to SQLite database at: ${dbPath}`);
   }
 });
 
-// Enable foreign keys
+// Enforce foreign key constraints at database engine level
 db.run('PRAGMA foreign_keys = ON;');
 
+/**
+ * Execute a SQL query returning multiple matching rows.
+ * 
+ * @template T - Expected row shape interface
+ * @param sql - Parameterized SQL query string
+ * @param params - Positional query parameter values
+ * @returns Promise resolving to an array of typed rows
+ */
 export const query = <T = any>(sql: string, params: any[] = []): Promise<T[]> => {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
@@ -33,6 +53,14 @@ export const query = <T = any>(sql: string, params: any[] = []): Promise<T[]> =>
   });
 };
 
+/**
+ * Execute a SQL query returning at most one matching row.
+ * 
+ * @template T - Expected row shape interface
+ * @param sql - Parameterized SQL query string
+ * @param params - Positional query parameter values
+ * @returns Promise resolving to a single typed row or undefined if not found
+ */
 export const getOne = <T = any>(sql: string, params: any[] = []): Promise<T | undefined> => {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
@@ -42,6 +70,13 @@ export const getOne = <T = any>(sql: string, params: any[] = []): Promise<T | un
   });
 };
 
+/**
+ * Execute a data modification SQL command (INSERT, UPDATE, DELETE).
+ * 
+ * @param sql - Parameterized SQL statement string
+ * @param params - Positional parameter values
+ * @returns Promise resolving to metadata containing `lastID` and rows `changes` count
+ */
 export const run = (sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> => {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
@@ -51,63 +86,70 @@ export const run = (sql: string, params: any[] = []): Promise<{ lastID: number; 
   });
 };
 
-// Initialize database schema
+/**
+ * Bootstrap database tables from schema.sql and seed baseline evaluator account.
+ */
 export const initDb = async () => {
   const schemaPath = path.resolve(__dirname, '../../../database/schema.sql');
   if (!fs.existsSync(schemaPath)) {
-    console.error(`Schema file not found at ${schemaPath}`);
+    console.error(`⚠️ Schema file not found at ${schemaPath}`);
     return;
   }
 
   const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
-  // Strip single-line comments
+  // Strip single-line SQL comments
   const cleanSql = schemaSql
     .split('\n')
     .filter((line) => !line.trim().startsWith('--'))
     .join('\n');
 
+  // Split SQL commands on semicolons
   const statements = cleanSql
     .split(';')
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 
+  // Execute schema creation statements sequentially
   for (const statement of statements) {
     try {
       await run(statement);
     } catch (err) {
-      console.error('Error executing schema statement:', statement, err);
+      console.error('❌ Error executing schema statement:', statement, err);
     }
   }
 
-  console.log('Database schema initialized successfully.');
+  console.log('✅ Database schema initialized successfully.');
 
-  // Seed demo student account if empty
+  // Seed baseline evaluator account if database is newly initialized
   await seedDemoData();
 };
 
+/**
+ * Populates initial demo account for evaluator testing (`alex.student@hostel.edu`).
+ */
 const seedDemoData = async () => {
   const demoEmail = 'alex.student@hostel.edu';
   const existingUser = await getOne('SELECT * FROM users WHERE email = ?', [demoEmail]);
 
-  if (existingUser) return; // Already seeded
+  if (existingUser) return; // Prevent duplicate demo record insertion
 
   const userId = 'demo-user-123';
   const passwordHash = await bcrypt.hash('password123', 10);
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // 1. Create demo user
+  // 1. Seed demo student user
   await run(
     'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
     [userId, 'Alex Chen', demoEmail, passwordHash]
   );
 
-  // 2. User settings
+  // 2. Seed student routine preferences
   await run(
     'INSERT INTO user_settings (id, user_id, wake_up_time, study_start_time, default_focus_duration) VALUES (?, ?, ?, ?, ?)',
     ['set-1', userId, '07:00', '09:00', 25]
   );
 
-  // 3. Demo Tasks
+  // 3. Seed demo hostel tasks
   const demoTasks = [
     {
       id: 'task-1',
@@ -162,7 +204,7 @@ const seedDemoData = async () => {
     );
   }
 
-  // 4. Demo Schedule Timeline
+  // 4. Seed demo schedule blocks
   const demoSchedules = [
     { id: 'sch-1', title: 'Wake Up & Morning Routine', start: '07:00', end: '08:00', cat: 'Personal', completed: 1 },
     { id: 'sch-2', title: 'Hostel Mess Breakfast', start: '08:00', end: '08:45', cat: 'Meal', completed: 1 },
@@ -183,7 +225,7 @@ const seedDemoData = async () => {
     );
   }
 
-  // 5. Demo Focus Sessions
+  // 5. Seed demo focus sessions
   const demoFocus = [
     { id: 'foc-1', task_id: 'task-1', mins: 25 },
     { id: 'foc-2', task_id: 'task-1', mins: 25 },
@@ -197,11 +239,11 @@ const seedDemoData = async () => {
     );
   }
 
-  // 6. Demo Reflections
+  // 6. Seed demo distraction self-reflection
   await run(
     'INSERT INTO daily_reflections (id, user_id, date, distraction_level, focus_level, notes) VALUES (?, ?, ?, ?, ?, ?)',
     ['ref-1', userId, todayStr, '30–60 min', 'Good', 'Felt organized after planning morning classes ahead of time.']
   );
 
-  console.log(`Seeded demo student account: ${demoEmail} (Password: password123)`);
+  console.log(`👤 Seeded demo student account: ${demoEmail} (Password: password123)`);
 };

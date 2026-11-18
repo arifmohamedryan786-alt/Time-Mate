@@ -1,7 +1,18 @@
+/**
+ * TIME-MATE - Authentication Context & Session Provider
+ * 
+ * Manages the current authenticated student state, JWT token persistence
+ * in browser localStorage (`bt_token`), automatic session hydration on mount,
+ * and session termination (logout).
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { api } from '../services/api';
 
+/**
+ * Shape of the authentication context exposed to consumers.
+ */
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -20,6 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * On initial mount, inspects localStorage for an existing JWT token.
+   * If found, calls /api/auth/me to re-hydrate the user profile.
+   */
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('bt_token');
@@ -28,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const res = await api.auth.getMe();
           setUser(res.user);
         } catch (err) {
-          console.error('Session expired or invalid token');
+          console.warn('[AuthContext] Session expired or invalid token. Removing local token.');
           localStorage.removeItem('bt_token');
         }
       }
@@ -38,6 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
+  /**
+   * Submits credentials to /api/auth/login, stores token, and updates user state.
+   */
   const login = async (email: string, password: string) => {
     setError(null);
     try {
@@ -50,6 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Registers a new student account, persists token, and establishes user session.
+   */
   const signup = async (name: string, email: string, password: string, confirmPassword: string) => {
     setError(null);
     try {
@@ -62,11 +83,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Signs out the user, removes the JWT token, and resets state.
+   */
   const logout = () => {
     api.auth.logout();
     setUser(null);
   };
 
+  /**
+   * Updates local student name without needing a full re-fetch.
+   */
   const updateUserLocal = (name: string) => {
     if (user) {
       setUser({ ...user, name });
@@ -82,6 +109,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+/**
+ * Custom hook to access authentication context.
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');

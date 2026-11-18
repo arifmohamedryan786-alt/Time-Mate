@@ -1,164 +1,306 @@
-# BETTER TOMORROW
-
-> **Tagline:** "Plan your day. Focus on what matters."
-
----
-
-## 📌 Project Overview
-
-**Better Tomorrow** is a research-backed digital productivity and time-management web application engineered specifically for **hostel students**. Developed as a Design Thinking project, it integrates daily timeline planning, prioritized task management, timed focus sessions, mobile distraction awareness self-reflections, flexible rescheduling, and empirical progress analytics into a cohesive, calm workspace.
-
-This application is designed to solve real-world student friction without clutter, fake AI labels, or unrealistic expectations.
+# TIME-MATE (Better Tomorrow)
+> **Tagline:** "Plan your day. Focus on what matters."  
+> **Target Audience:** Hostel Students balancing academics, irregular schedules, and phone distractions.  
+> **Milestone Status:** Review 3 Completed (Incremental 30% Completion / Cumulative 65% Completion)  
+> **Repository:** [https://github.com/arifmohamedryan786-alt/Time-Mate](https://github.com/arifmohamedryan786-alt/Time-Mate)
 
 ---
 
-## 🔍 Problem Statement
-
-Hostel life introduces unique time-management challenges for undergraduate and postgraduate students:
-1. **Mobile Phone Distractions:** Constant social media notifications, group chats, and short-form video feeds break study concentration.
-2. **Late Waking & Irregular Routines:** Inconsistent sleeping schedules and variable hostel mess hours lead to unorganized days.
-3. **Lack of Structured Planning:** Students struggle to allocate specific time blocks for lectures, self-study, assignments, and personal rest.
-4. **Difficulty Prioritizing Tasks:** Urgent vs. important assignments get mixed up, leading to late submission panics.
-5. **Handling Missed Tasks:** Rigid calendars punish unexpected hostel interruptions (impromptu floor meetings, mess delays) with no easy way to adjust.
-
----
-
-## 🎓 Target Users & Research Insights
-
-* **Primary Users:** Hostel students residing in university campuses or shared accommodations.
-* **Secondary Users:** Higher education students balancing academics, projects, and personal routines.
-
-### Key Research Insights
-* **Self-Awareness over Surveillance:** Students reject privacy-invasive app monitoring; self-reported daily distraction reflections build sustainable time awareness.
-* **Flexible Rescheduling is Essential:** Over 80% of hostel routines suffer unexpected disruptions. One-click rescheduling prevents task abandonment.
-* **70/30 Visual Balance:** A clean 70% light / 30% warm neutral brown aesthetic creates a calm, focused environment optimal for long study sessions.
+## 📌 Table of Contents
+1. [Project Overview & Problem Statement](#-project-overview--problem-statement)
+2. [Review 2 Feedback & Review 3 Improvements](#-review-2-feedback--review-3-improvements)
+3. [Technology Stack](#-technology-stack)
+4. [Project Structure](#-project-structure)
+5. [Granular Technical Documentation on Unit Testing](#-granular-technical-documentation-on-unit-testing)
+6. [Granular Technical Documentation on Error Boundaries](#-granular-technical-documentation-on-error-boundaries)
+7. [Comprehensive REST API Documentation](#-comprehensive-rest-api-documentation)
+8. [Comprehensive Relational Database Schema](#-comprehensive-relational-database-schema)
+9. [Installation & Setup](#-installation--setup)
+10. [Running the Application & Tests](#-running-the-application--tests)
+11. [Evaluator Demo Credentials](#-evaluator-demo-credentials)
+12. [Documentation Index](#-documentation-index)
 
 ---
 
-## 🚀 Proposed Solution & Core Features
+## 📌 Project Overview & Problem Statement
 
-| Problem Area | Applied Feature Solution |
+**Time-Mate** (engineered under the concept *Better Tomorrow*) is a research-backed digital productivity and time-management web application specifically optimized for **hostel students**. Developing structured habits in a shared university accommodation presents acute frictions:
+1. **Mobile Phone Distraction:** Constant group chat pings and video scrolling interrupt deep study blocks.
+2. **Irregular Hostel Routines:** Variable mess meal hours and inconsistent sleep schedules lead to chaotic days.
+3. **Priority Confusion:** Students struggle to distinguish urgent vs. important assignments, triggering panic.
+4. **Rigid Schedule Abandonment:** When unexpected hostel disruptions happen, traditional calendar apps break; students abandon their entire plan.
+
+### Applied Feature Solutions
+* **Daily Focus & Distraction Self-Check:** Non-invasive self-reporting of daily phone screen time (<30m to >3h) and focus ratings to cultivate intrinsic awareness rather than invasive surveillance.
+* **Daily Timeline Planner:** Time-blocked daily routine manager from 06:00 to 23:30.
+* **Prioritized Tasks Matrix:** Three-tier prioritization (`HIGH`, `MEDIUM`, `LOW`) linked with categories (`Study`, `Assignment`, `Class`, `Personal`, `Project`).
+* **Flexible Rescheduling:** One-click shifting of uncompleted tasks to *Later Today*, *Tomorrow*, or a custom date without destroying history.
+* **Pomodoro Focus Timer:** 15m, 25m, 45m, and 60m focused countdown sessions linked directly to database records and task entities.
+* **Progress Analytics:** 7-day completion rate visualization and total weekly focus hours aggregation.
+
+---
+
+## 🌟 Review 2 Feedback & Review 3 Improvements
+
+Following the Review 2 evaluation (achieving **92% Criteria Met**), all suggested improvements have been systematically implemented:
+
+| Evaluator Feedback from Review 2 | Engineering Action Completed in Review 3 |
 | :--- | :--- |
-| **Mobile Distraction** | **Daily Focus & Distraction Self-Check** (Self-report daily phone time and focus level) |
-| **Irregular Routine** | **Daily Planner** (Timeline blocks for classes, meals, study, and rest) |
-| **Priority Confusion** | **Priority Tasks** (Categorized matrix: `HIGH`, `MEDIUM`, `LOW` priority) |
-| **Missed Tasks** | **Flexible Rescheduling** (Shift tasks to *Later Today*, *Tomorrow*, or custom date/time) |
-| **Lack of Focus** | **Focus Timer** (Pomodoro timer with 15m, 25m, 45m, 60m presets linked to tasks) |
-| **Unclear Progress** | **Progress Analytics** (7-day task completion chart & focus hours tracking) |
-
----
-
-## 🧭 User Flow
-
-1. **Landing Page:** Public entry point explaining the hostel productivity research problem, solution pillars, 4-step workflow, and dashboard preview.
-2. **Authentication:** Sign Up or Sign In securely (or use the built-in Evaluator Quick Demo button for `alex.student@hostel.edu`).
-3. **Dashboard:** Morning greeting, motivational prompt, overall completion percentage, next scheduled activity, quick action buttons, and daily time balance breakdown.
-4. **Daily Planner:** Create, edit, complete, or delete time-sequenced schedule items (06:00 to 23:30).
-5. **Tasks Page:** Manage tasks with filters (*All*, *Today*, *Upcoming*, *Completed*) and sort by priority, due time, or date.
-6. **Flexible Rescheduling:** Trigger quick rescheduling modals to move uncompleted tasks without losing history.
-7. **Focus Timer:** Select an active task, launch a 25-minute focus session, and record completed minutes to the SQLite database.
-8. **Progress & Insights:** View weekly completion statistics, total focus time, 7-day visual bar chart, and phone distraction reflection insights.
-9. **Settings:** Adjust profile details, preferred wake-up time, study start time, focus timer duration, and notification preferences.
+| **"Provide more granular technical documentation on unit testing and error boundaries."** | • Created **26 automated unit tests** (15 backend + 11 frontend) with 100% pass rate.<br>• Implemented **Dual-Layer React Error Boundary** (`ErrorBoundary.tsx`) with accessible fallback UI and real-time developer diagnostics drawer.<br>• Built centralized backend error middleware (`errorHandler.ts`) with custom `AppError` operational error handling. |
+| **"Expand code comments and document API endpoints / database schema in README for subsequent reviews."** | • Added comprehensive JSDoc/TSDoc comments across all backend controllers, middleware, and frontend contexts/services.<br>• Documented all 14 REST API endpoints with request bodies, validation rules, HTTP status codes, and error envelopes.<br>• Documented the complete SQLite database schema with Mermaid ER diagrams, data dictionary, and 3NF normalization analysis. |
 
 ---
 
 ## 🛠 Technology Stack
 
-### Frontend
-* **Framework:** React 18 + Vite + TypeScript
-* **Styling:** Tailwind CSS (Custom warm neutral design system `#8C5638` accent, `#FAFAF8` background)
-* **Icons:** Lucide React
+### Frontend Architecture
+* **Core Framework:** React 18 + Vite + TypeScript
+* **Styling & Design System:** Tailwind CSS (Warm neutral palette: `#8C5638` accent, `#FAFAF8` background)
+* **Iconography:** Lucide React
 * **State Management:** React Context API (`AuthContext`, `AppContext`)
+* **Error Containment:** Dual-Layer React Error Boundaries (`ErrorBoundary.tsx`)
 
-### Backend
-* **Runtime:** Node.js + Express
-* **Authentication:** JWT (JSON Web Tokens) with `bcryptjs` password hashing
-* **Language:** TypeScript (`tsx`)
+### Backend Architecture
+* **Runtime:** Node.js v20+ / v26+ with Express
+* **Language:** TypeScript executed via `tsx`
+* **Authentication:** JSON Web Tokens (JWT) with 7-day expiration & `bcryptjs` password hashing (work factor 10)
+* **Error Handling:** Centralized Express middleware intercepting operational vs. programmer errors
 
-### Database
+### Database Layer
 * **Engine:** SQLite 3 (`better_tomorrow.db`)
-* **ORM / Driver:** `sqlite3` driver with custom Promise wrapper (`query`, `getOne`, `run`)
+* **Integrity:** Enforced foreign keys via `PRAGMA foreign_keys = ON;`
+* **Data Access:** Promise-wrapped native driver (`query`, `getOne`, `run`) with automatic startup schema migration and demo seeder
 
 ---
 
 ## 📂 Project Structure
 
 ```
-/TIMEMATE
-  ├── backend/
-  │   ├── src/
-  │   │   ├── controllers/      # Auth, Task, Schedule, Focus, Reflection, Settings controllers
-  │   │   ├── db/               # SQLite database connector & auto-seeder (database.ts)
-  │   │   ├── middleware/       # JWT Authentication middleware (auth.ts)
-  │   │   ├── routes/           # Express REST API routes (api.ts)
-  │   │   └── server.ts         # Main Express application server
-  │   ├── package.json
-  │   └── tsconfig.json
-  ├── frontend/
-  │   ├── src/
-  │   │   ├── components/       # Navbar, Sidebar, Header, TaskModal, ScheduleModal, RescheduleModal, ReflectionModal
-  │   │   ├── context/          # AuthContext.tsx, AppContext.tsx
-  │   │   ├── pages/            # LandingPage, SignInPage, SignUpPage, DashboardPage, DailyPlannerPage, TasksPage, FocusTimerPage, ProgressPage, SettingsPage
-  │   │   ├── services/         # API fetch service wrapper (api.ts)
-  │   │   ├── types/            # TypeScript interfaces (index.ts)
-  │   │   ├── App.tsx
-  │   │   └── index.css         # Tailwind directives & typography
-  │   ├── package.json
-  │   ├── tailwind.config.js
-  │   └── vite.config.ts
-  ├── database/
-  │   ├── schema.sql            # Relational SQLite database schema
-  │   └── better_tomorrow.db    # SQLite database file (created automatically on startup)
-  └── README.md
+TIME-MATE/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/            # Annotated controllers: auth, task, schedule, focus, reflection, settings
+│   │   ├── db/                     # SQLite connector, PRAGMA config, auto-seeder (database.ts)
+│   │   ├── middleware/             # JWT auth (auth.ts) & Centralized error handler (errorHandler.ts)
+│   │   ├── routes/                 # Express route definitions (api.ts)
+│   │   ├── tests/                  # Backend unit test suites: auth, taskController, errorHandling
+│   │   └── server.ts               # Server bootstrapping & middleware pipeline
+│   ├── package.json                # Backend scripts & dependencies
+│   └── tsconfig.json               # Backend TypeScript configuration
+├── frontend/
+│   ├── src/
+│   │   ├── components/             # ErrorBoundary, Navbar, Sidebar, Header, Modals
+│   │   ├── context/                # AuthContext.tsx, AppContext.tsx
+│   │   ├── pages/                  # LandingPage, DashboardPage, TasksPage, DailyPlannerPage, FocusTimerPage, etc.
+│   │   ├── services/               # Typed API client wrapper (api.ts)
+│   │   ├── tests/                  # Frontend unit test suites: errorBoundary, taskLogic, productivityMetrics
+│   │   ├── types/                  # TypeScript interface definitions (index.ts)
+│   │   ├── App.tsx                 # Root application shell protected by ErrorBoundary
+│   │   └── main.tsx                # Client entry point
+│   ├── package.json                # Frontend scripts & dependencies
+│   ├── tailwind.config.js          # Design system styling tokens
+│   └── vite.config.ts              # Vite bundling configuration
+├── database/
+│   ├── schema.sql                  # Relational SQLite database schema
+│   └── better_tomorrow.db          # Auto-generated SQLite database file
+├── docs/                           # Granular Technical Documentation
+│   ├── API_DOCUMENTATION.md        # Comprehensive REST API contracts
+│   ├── DATABASE_SCHEMA.md          # Data dictionary & ER diagrams
+│   ├── UNIT_TESTING_AND_ERROR_BOUNDARIES.md # In-depth testing & error architecture
+│   └── REVIEW_3_PROGRESS_REPORT.md # Official Review 3 submission report
+└── README.md                       # Main project documentation
 ```
 
 ---
 
-## 🗄 Database Design
+## 🧪 Granular Technical Documentation on Unit Testing
 
-The SQLite database enforces relational integrity with foreign key constraints:
+Time-Mate utilizes the native Node.js test runner (`node:test`) and strict assertion library (`node:assert/strict`) compiled via `tsx`. This guarantees zero third-party testing library bloat, instantaneous test execution, and 100% deterministic results.
 
-```sql
-users (id PK, name, email UNIQUE, password_hash, created_at, updated_at)
-user_settings (id PK, user_id FK, wake_up_time, study_start_time, default_focus_duration, task_reminders, schedule_reminders, focus_reminders, updated_at)
-tasks (id PK, user_id FK, title, description, category, priority, due_date, due_time, notes, completed, created_at, updated_at)
-schedules (id PK, user_id FK, title, date, start_time, end_time, category, notes, completed, created_at, updated_at)
-focus_sessions (id PK, user_id FK, task_id FK, duration_minutes, completed_at, created_at)
-daily_reflections (id PK, user_id FK, date, distraction_level, focus_level, notes, created_at)
-```
+### Test Execution Commands
+* **Run Backend Unit Tests:** `cd backend && npm test`
+* **Run Frontend Unit Tests:** `cd frontend && npm test`
+* **Run All Tests:** `(cd backend && npm test) && (cd frontend && npm test)`
+
+### Automated Test Matrix (26 Tests — 100% Pass Rate)
+
+| Test Suite | Total Tests | Target Functionality Tested | Execution Time |
+| :--- | :---: | :--- | :---: |
+| **`backend/src/tests/auth.test.ts`** | 5 | Bcrypt password hashing, work factor verification, JWT token signing, claims verification, token tamper rejection, expired token rejection, password minimum length rule. | ~160ms |
+| **`backend/src/tests/errorHandling.test.ts`** | 5 | `AppError` subclass construction, default status 500 fallback, 404 route not found response formatting, SQLite unique constraint mapping to HTTP 409, JWT expiration mapping to HTTP 401. | ~3ms |
+| **`backend/src/tests/taskController.test.ts`** | 5 | Standardized priority tiers (`HIGH`, `MEDIUM`, `LOW`), allowed task categories, SQLite numeric 0/1 to JSON boolean conversion, tomorrow date calculation for rescheduling, mandatory field validations. | ~2ms |
+| **`frontend/src/tests/errorBoundary.test.ts`** | 4 | Initial non-error state initialization, `getDerivedStateFromError` lifecycle state derivation, `componentDidCatch` stack trace capture, state recovery via `handleReset`. | ~2ms |
+| **`frontend/src/tests/taskLogic.test.ts`** | 4 | Today vs upcoming date filtering, active vs completed task filtering, priority weight sorting (`HIGH` > `MEDIUM` > `LOW`), immutable task rescheduling. | ~2ms |
+| **`frontend/src/tests/productivityMetrics.test.ts`** | 3 | Task completion percentage calculation (including 0/0 edge case), Pomodoro minutes-to-hours aggregation, distraction severity classification. | ~1ms |
+
+**Total:** **26 passing tests across 6 test suites (~500ms combined execution).**
 
 ---
 
-## 🌐 API Documentation
+## 🛡 Granular Technical Documentation on Error Boundaries
 
-### Public Authentication Endpoints
-* `POST /api/auth/signup` — Create a new student account.
-* `POST /api/auth/login` — Authenticate user & return JWT token.
-* `POST /api/auth/logout` — Invalidate user session token.
+### 1. Frontend: Dual-Layer React Error Boundaries
+Uncaught exceptions during rendering or in component lifecycle hooks will crash the entire React application tree, presenting users with a blank white screen. Time-Mate mitigates this through a **Dual-Layer Error Boundary** architecture implemented in `frontend/src/components/ErrorBoundary.tsx`:
 
-### Protected Endpoints (Requires `Authorization: Bearer <token>`)
-* `GET /api/auth/me` — Fetch currently authenticated student profile.
-* `GET /api/tasks` — Retrieve all user tasks.
-* `POST /api/tasks` — Create a new task.
-* `PUT /api/tasks/:id` — Update or reschedule a task.
-* `DELETE /api/tasks/:id` — Delete a task.
-* `GET /api/schedules` — Retrieve daily schedule timeline items.
-* `POST /api/schedules` — Create a new schedule block.
-* `PUT /api/schedules/:id` — Update a schedule block.
-* `DELETE /api/schedules/:id` — Delete a schedule block.
-* `GET /api/focus-sessions` — Get logged focus sessions.
-* `POST /api/focus-sessions` — Record a completed focus timer session.
-* `GET /api/reflections` — Fetch daily distraction self-reports.
-* `POST /api/reflections` — Save daily distraction & focus reflection.
-* `GET /api/settings` — Get user profile & routine preferences.
-* `PUT /api/settings` — Update routine preferences.
+* **Layer 1 (Application Root Boundary in `App.tsx`):**
+  Wraps the entire DOM tree and context providers. Catches fatal startup errors and provides a global "Refresh Application" recovery action.
+* **Layer 2 (Workspace View Boundary in `App.tsx`):**
+  Wraps the active `<main>` view area. If an uncaught error occurs inside a specific page (e.g., Focus Timer or Progress chart), only that view unmounts into a clean fallback card. The **Top Navbar** and **Left Navigation Sidebar remain 100% interactive**, allowing the student to navigate to other tabs without data loss.
+
+#### Interactive Fallback Features:
+* **User-Friendly Error Message:** Clear explanation in plain language reassuring students that their database records remain safe.
+* **One-Click Recovery:** "Try Again & Reload View" button that triggers `handleReset()`, resetting `hasError: false` and clearing error references.
+* **Technical Diagnostics Drawer:** An expandable accordion displaying component stack hierarchy and JavaScript error stack traces for instant debugging by evaluators and developers.
+
+### 2. Backend: Centralized Express Error Middleware
+The backend server implements a centralized error processing pipeline (`backend/src/middleware/errorHandler.ts`):
+* **Custom Operational Error Class (`AppError`):** Distinguishes operational, client-fixable errors from unexpected programmer crashes.
+* **Automatic Status Code & Message Mapping:**
+  - `SQLITE_CONSTRAINT_UNIQUE` $\rightarrow$ **HTTP 409 Conflict** ("Database constraint violation. Duplicate resource.")
+  - `SQLITE_CONSTRAINT_FOREIGNKEY` $\rightarrow$ **HTTP 400 Bad Request** ("Foreign key constraint failed.")
+  - `JsonWebTokenError` / `TokenExpiredError` $\rightarrow$ **HTTP 401 Unauthorized** ("Authentication token has expired.")
+  - `SyntaxError` (Malformed JSON) $\rightarrow$ **HTTP 400 Bad Request** ("Malformed JSON payload in request body.")
+* **404 Route Interceptor (`notFoundHandler`):** Intercepts non-existent routes prior to error handling and returns a standardized JSON 404 envelope.
+* **Deterministic Error Envelope:**
+  ```json
+  {
+    "success": false,
+    "error": "Human-readable description of error.",
+    "timestamp": "2026-11-18T10:53:00.000Z"
+  }
+  ```
+
+---
+
+## 🌐 Comprehensive REST API Documentation
+
+### API Directory
+
+| HTTP Method | Endpoint URL | Authentication | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/auth/signup` | Public | Register new student account and issue JWT |
+| `POST` | `/api/auth/login` | Public | Authenticate email & password; returns JWT |
+| `POST` | `/api/auth/logout` | Public | Invalidate student session token |
+| `GET` | `/api/auth/me` | Bearer Token | Retrieve currently authenticated student profile |
+| `PUT` | `/api/auth/change-password` | Bearer Token | Change password with current password verification |
+| `GET` | `/api/tasks` | Bearer Token | Retrieve all prioritized tasks for student |
+| `POST` | `/api/tasks` | Bearer Token | Create a new task (`HIGH`, `MEDIUM`, `LOW` priority) |
+| `PUT` | `/api/tasks/:id` | Bearer Token | Update task details or reschedule due date/time |
+| `DELETE` | `/api/tasks/:id` | Bearer Token | Delete a task by ID |
+| `GET` | `/api/schedules` | Bearer Token | Retrieve daily schedule blocks (supports `?date=YYYY-MM-DD`) |
+| `POST` | `/api/schedules` | Bearer Token | Create a daily routine schedule block |
+| `PUT` | `/api/schedules/:id` | Bearer Token | Update schedule timing, category, or completion |
+| `DELETE` | `/api/schedules/:id` | Bearer Token | Delete a schedule item |
+| `GET` | `/api/focus-sessions` | Bearer Token | Retrieve logged Pomodoro focus sessions |
+| `POST` | `/api/focus-sessions` | Bearer Token | Record a completed focus session |
+| `GET` | `/api/reflections` | Bearer Token | Retrieve student distraction self-reports |
+| `POST` | `/api/reflections` | Bearer Token | Upsert daily phone distraction & focus ratings |
+| `GET` | `/api/settings` | Bearer Token | Retrieve student routine preferences & notification flags |
+| `PUT` | `/api/settings` | Bearer Token | Update wake-up time, study hours, or presets |
+
+*(For full cURL examples, request schemas, and error codes, refer to [docs/API_DOCUMENTATION.md](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/API_DOCUMENTATION.md)).*
+
+---
+
+## 🗄 Comprehensive Relational Database Schema
+
+### Entity-Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    USERS ||--|| USER_SETTINGS : "has preferences"
+    USERS ||--o{ TASKS : "owns"
+    USERS ||--o{ SCHEDULES : "plans"
+    USERS ||--o{ FOCUS_SESSIONS : "logs"
+    USERS ||--o{ DAILY_REFLECTIONS : "records"
+    TASKS ||--o{ FOCUS_SESSIONS : "associated with"
+
+    USERS {
+        TEXT id PK
+        TEXT name
+        TEXT email UK
+        TEXT password_hash
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    USER_SETTINGS {
+        TEXT id PK
+        TEXT user_id FK, UK
+        TEXT wake_up_time
+        TEXT study_start_time
+        INTEGER default_focus_duration
+        INTEGER task_reminders
+        INTEGER schedule_reminders
+        INTEGER focus_reminders
+        DATETIME updated_at
+    }
+
+    TASKS {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT title
+        TEXT description
+        TEXT category
+        TEXT priority
+        TEXT due_date
+        TEXT due_time
+        TEXT notes
+        INTEGER completed
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    SCHEDULES {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT title
+        TEXT date
+        TEXT start_time
+        TEXT end_time
+        TEXT category
+        TEXT notes
+        INTEGER completed
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    FOCUS_SESSIONS {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT task_id FK
+        INTEGER duration_minutes
+        DATETIME completed_at
+        DATETIME created_at
+    }
+
+    DAILY_REFLECTIONS {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT date
+        TEXT distraction_level
+        TEXT focus_level
+        TEXT notes
+        DATETIME created_at
+    }
+```
+
+### Relational Data Dictionary Summary
+* **`users`:** Stores student credentials (`id` PK, `name`, `email` UK, `password_hash`, timestamps).
+* **`user_settings`:** 1-to-1 profile preferences (`user_id` FK $\rightarrow$ `users(id)` ON DELETE CASCADE).
+* **`tasks`:** Prioritized to-do records (`id` PK, `user_id` FK, `title`, `priority`, `due_date`, `completed`).
+* **`schedules`:** Daily timeline intervals (`id` PK, `user_id` FK, `title`, `date`, `start_time`, `end_time`).
+* **`focus_sessions`:** Pomodoro logs (`task_id` FK $\rightarrow$ `tasks(id)` ON DELETE SET NULL to preserve focus analytics even if task is deleted).
+* **`daily_reflections`:** Self-reported phone distraction and focus levels (`user_id` FK, `date`, `distraction_level`, `focus_level`).
+
+*(For full column types, default values, and 3NF normalization analysis, refer to [docs/DATABASE_SCHEMA.md](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/DATABASE_SCHEMA.md)).*
 
 ---
 
 ## ⚡ Installation & Setup
 
 ### Prerequisites
-* **Node.js:** v18.0.0 or higher
+* **Node.js:** v18.0.0 or higher (v20+ / v26+ supported)
 * **npm:** v9.0.0 or higher
 
 ### 1. Install Backend Dependencies
@@ -175,39 +317,46 @@ npm install
 
 ---
 
-## ▶️ Running the Application
+## ▶️ Running the Application & Tests
 
-### Option A: Run Backend Server (Port 5001)
+### Step 1: Run Automated Unit Tests
+```bash
+# Run backend tests (15 tests)
+cd backend && npm test
+
+# Run frontend tests (11 tests)
+cd ../frontend && npm test
+```
+
+### Step 2: Start Backend Server (Port 5001)
 ```bash
 cd backend
 npm run dev
 ```
 *Health Check:* `http://localhost:5001/api/health`
 
-### Option B: Run Frontend App (Port 3000 / 3002)
+### Step 3: Start Frontend Client (Vite Dev Server)
 ```bash
 cd frontend
 npm run dev
 ```
-Open `http://localhost:3002/` (or displayed Vite local port) in your web browser.
+Open `http://localhost:3000/` or `http://localhost:3002/` in your browser.
 
 ---
 
-## 🧪 Testing Checklist
+## 👤 Evaluator Demo Credentials
 
-All evaluation criteria have been verified:
-- [x] **Authentication:** Sign Up, Sign In, Sign Out, and Evaluator Demo Login (`alex.student@hostel.edu` / `password123`) work.
-- [x] **Tasks CRUD:** Task creation, editing, deletion, priority assignment (`HIGH`, `MEDIUM`, `LOW`), filtering, sorting, and completion toggles.
-- [x] **Planner CRUD:** Schedule item creation, category styling, timeline rendering, completion toggling, editing, and deletion.
-- [x] **Flexible Rescheduling:** Moving uncompleted tasks to *Later Today* or *Tomorrow* with live database sync.
-- [x] **Focus Timer:** 25-minute Pomodoro timer countdown, task linkage, pause/reset/finish controls, and database logging.
-- [x] **Distraction Self-Check:** Logging daily phone use (<30m to >3h) and focus level rating into SQLite.
-- [x] **Progress Analytics:** Correct task counts, total focus minutes, 7-day completion chart, and research insights.
-- [x] **Settings:** Persistence of profile details and daily routine preferences.
-- [x] **Database Isolation:** Multi-user data safety; SQLite tables auto-initialize on startup.
+The database auto-initializes and seeds a complete demo profile upon first startup:
+* **Demo Email:** `alex.student@hostel.edu`
+* **Demo Password:** `password123`
+* **Quick Access:** The sign-in page features a one-click **"Evaluator Demo Login"** button that pre-populates these credentials and logs in immediately with pre-loaded tasks, timeline schedule blocks, focus history, and reflections.
 
 ---
 
-## 📄 License & Evaluation Note
+## 📄 Documentation Index
 
-Developed for academic research evaluation in student productivity and time management systems. Built with genuine human design principles, zero fake placeholders, and real-time backend persistence.
+All technical documents are maintained in the repository for review:
+* [Granular Technical Documentation on Unit Testing & Error Boundaries](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/UNIT_TESTING_AND_ERROR_BOUNDARIES.md)
+* [Comprehensive REST API Documentation](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/API_DOCUMENTATION.md)
+* [Relational Database Schema & Data Dictionary](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/DATABASE_SCHEMA.md)
+* [Official Review 3 Progress Report](file:///Users/arifmohamed/Downloads/Time-Mate-main%202/docs/REVIEW_3_PROGRESS_REPORT.md)

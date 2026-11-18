@@ -1,7 +1,19 @@
+/**
+ * TIME-MATE - Frontend API Service Client
+ * 
+ * Provides typed HTTP communication with the backend Express REST API.
+ * Injects JWT Bearer tokens from localStorage, unifies error handling,
+ * and formats request/response payloads.
+ */
+
 import { Task, Schedule, FocusSession, DailyReflection, UserSettings, User } from '../types';
 
 const API_BASE = '/api';
 
+/**
+ * Builds standard HTTP headers for outgoing requests,
+ * automatically including the JWT token from localStorage if present.
+ */
 const getHeaders = () => {
   const token = localStorage.getItem('bt_token');
   return {
@@ -10,6 +22,10 @@ const getHeaders = () => {
   };
 };
 
+/**
+ * Unifies JSON response extraction and HTTP status verification.
+ * Throws a descriptive Error containing backend error messages.
+ */
 async function handleResponse<T>(response: Response): Promise<T> {
   const data = await response.json();
   if (!response.ok) {
@@ -19,6 +35,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  // Authentication & Identity Endpoints
   auth: {
     signup: async (data: any) => {
       const res = await fetch(`${API_BASE}/auth/signup`, {
@@ -55,6 +72,7 @@ export const api = {
     },
   },
 
+  // Task Management Endpoints
   tasks: {
     getAll: async () => {
       const res = await fetch(`${API_BASE}/tasks`, { headers: getHeaders() });
@@ -85,6 +103,7 @@ export const api = {
     },
   },
 
+  // Daily Schedule Timeline Endpoints
   schedules: {
     getAll: async (date?: string) => {
       const url = date ? `${API_BASE}/schedules?date=${date}` : `${API_BASE}/schedules`;
@@ -116,6 +135,7 @@ export const api = {
     },
   },
 
+  // Pomodoro Focus Timer Endpoints
   focus: {
     getAll: async () => {
       const res = await fetch(`${API_BASE}/focus-sessions`, { headers: getHeaders() });
@@ -131,6 +151,7 @@ export const api = {
     },
   },
 
+  // Mobile Distraction & Focus Self-Reflection Endpoints
   reflections: {
     getAll: async () => {
       const res = await fetch(`${API_BASE}/reflections`, { headers: getHeaders() });
@@ -146,6 +167,7 @@ export const api = {
     },
   },
 
+  // Student Preferences & Routine Settings Endpoints
   settings: {
     get: async () => {
       const res = await fetch(`${API_BASE}/settings`, { headers: getHeaders() });
@@ -157,7 +179,7 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      return handleResponse<{ message: string; user: User; settings: UserSettings }>(res);
+      return handleResponse<{ message: string; settings: UserSettings; user?: User }>(res);
     },
   },
 };
